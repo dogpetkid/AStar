@@ -7,6 +7,7 @@ var cir_gy = 7; // grid y TEMPORARY
 const CircleType = {
     START: "BLUE",
     END: "YELLOW",
+    PATH: "CYAN",
     CHECK: "GREEN",
     CHECKED: "RED"
 };

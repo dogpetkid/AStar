@@ -165,13 +165,12 @@ var obstacles = [
 
 var openList = [];
 var closedList = [];
+var path = [];
 // traversable list here
 openList.push(start);
 // closed.push(null);closed.pop(null); // force the array to type to an array and not transform into false (because I-don't-know why)
 
 function AStar() {
-
-    drawQueue = [];
 
     while (true) {
         if (openList.length === 0) return false;
@@ -185,7 +184,7 @@ function AStar() {
         if (current.identical(goal)) { // The path has been found
             console.log(current);
             console.log("A* done");
-            return true;
+            break;
         };
 
 
@@ -200,6 +199,19 @@ function AStar() {
 
             neighbour.forceOpen();
         }
+    }
+
+    // break the path up into each of the nodes so they can individually be collored
+    path = [];
+
+    // grab the first node...
+    var currentPath = current;
+    // and for every parent of it...
+    while (currentPath != null) {
+        // add it to the path array...
+        path.push(currentPath);
+        // then get the next parent
+        currentPath = currentPath.parent;
     }
 }
 
@@ -219,6 +231,10 @@ function drawLocalAstar(canvas, ctx) {
     });
     obstacles.forEach(element => {
         element.color=GridColor;
+        element.draw(canvas, ctx);
+    });
+    path.forEach(element => {
+        element.color=CircleType.PATH;
         element.draw(canvas, ctx);
     });
 
