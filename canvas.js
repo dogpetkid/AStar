@@ -49,6 +49,9 @@ function draw(canvas) {
     tileBack(canvas, ctx, grid_x, grid_y);
 
     gridCircle(canvas, ctx, CircleType.START, cir_gx, cir_gy);
+    gridCircle(canvas, ctx, CircleType.END, 0, 0);
+    gridCircle(canvas, ctx, CircleType.CHECK, 4, 6);
+    gridCircle(canvas, ctx, CircleType.CHECKED, 4, 8);
 
 }
 
