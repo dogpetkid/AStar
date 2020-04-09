@@ -36,6 +36,7 @@ window.addEventListener("resize", () => {
     draw(canvas);
 });
 
+var drawAstar = function (canvas, ctx) {};
 
 // draws contents
 function draw(canvas) {
@@ -48,10 +49,7 @@ function draw(canvas) {
 
     tileBack(canvas, ctx, grid_x, grid_y);
 
-    gridCircle(canvas, ctx, CircleType.START, cir_gx, cir_gy);
-    gridCircle(canvas, ctx, CircleType.END, 0, 0);
-    gridCircle(canvas, ctx, CircleType.CHECK, 4, 6);
-    gridCircle(canvas, ctx, CircleType.CHECKED, 4, 8);
+    drawAstar(canvas, ctx);
 
 }
 
@@ -102,7 +100,7 @@ function tileBack(canvas, ctx, rectHeight, rectWidth) {
 // gy is a y value on the grid
 function gridCircle(canvas, ctx, type, gx, gy) {
 
-    console.log("Grid circle: color " + type + " gx " + gx + "gy " + gy);
+    console.log("Grid circle: color " + type + " gx " + gx + " gy " + gy);
 
     ctx.strokeStyle = type; // because type holds the string of the color, it can just be set here
 

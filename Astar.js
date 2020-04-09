@@ -3,6 +3,7 @@ class Point {
     constructor(x,y) {
         this.x = x;
         this.y = y;
+        this.color = "BLACK";
     }
 
     // checks if the other point is the same point
@@ -11,11 +12,16 @@ class Point {
         // the two points are in the same spot, their other values must be the same as well as the math should work out the same
         return this.x==other.x && this.y==other.y;
     }
+
+    // returns the function to draw this point
+    draw(canvas, ctx) {
+        return gridCircle(canvas, ctx, this.color, this.x, this.y);
+    }
 }
 
 // a node is a location that can be traveled to
 // (these will be placed apon a grid in this demo)
-class Node extends Point{
+class Node extends Point {
     constructor(parent,x,y) {
         super(x,y);
         this.parent = parent;
@@ -123,21 +129,37 @@ class Node extends Point{
 }
 
 // the start node lacks a parent and has a g cost of 0 (because it is the start node)
-class Start extends Node{
+class Start extends Node {
     constructor(x,y) {
         super(new Point(x,y), x, y);
         this.parent = null;
         this.g = 0; // g cost: has no cost as it is the start
         this.f = this.g + this.h; // f cost: sum of g and h costs
+        this.color = CircleType.START;
+    }
+}
+
+// the end point lacks everything except a location and color
+class End extends Point {
+    constructor(x,y) {
+        super(x, y);
+        this.color = CircleType.END;
     }
 }
 
 
-var goal = new Point(10,10);
+var goal = new End(10,15);
 var start = new Start(5,5);
 
 var obstacles = [
-
+    new Point(5,10),
+    new Point(6,10),
+    new Point(7,10),
+    new Point(8,10),
+    new Point(9,10),
+    new Point(9,9),
+    new Point(9,8),
+    new Point(9,7)
 ];
 
 
@@ -148,6 +170,9 @@ openList.push(start);
 // closed.push(null);closed.pop(null); // force the array to type to an array and not transform into false (because I-don't-know why)
 
 function AStar() {
+
+    drawQueue = [];
+
     while (true) {
         if (openList.length === 0) return false;
 
@@ -176,4 +201,25 @@ function AStar() {
             neighbour.forceOpen();
         }
     }
+}
+
+drawAstar = drawLocalAstar;
+
+function drawLocalAstar(canvas, ctx) {
+
+    goal.draw(canvas, ctx);
+    start.draw(canvas, ctx);
+    openList.forEach(element => {
+        element.color=CircleType.CHECK;
+        element.draw(canvas, ctx);
+    });
+    closedList.forEach(element => {
+        element.color=CircleType.CHECKED;
+        element.draw(canvas, ctx);
+    });
+    obstacles.forEach(element => {
+        element.color=GridColor;
+        element.draw(canvas, ctx);
+    });
+
 }
