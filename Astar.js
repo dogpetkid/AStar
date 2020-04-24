@@ -1,4 +1,5 @@
-// A node without any data about the costs
+// A point is a location on the grid
+// (The point only contains its location and color)
 class Point {
     constructor(x,y) {
         this.x = x;
@@ -7,38 +8,57 @@ class Point {
     }
 
     // checks if the other point is the same point
-    // NOTE: two points can be identical if their parents are different and/or have different costs, this is to check if they occupy the same location
+    // (the two points are considered identical when their locations are the same)
     identical(other) {
-        // the two points are in the same spot, their other values must be the same as well as the math should work out the same
         return this.x==other.x && this.y==other.y;
     }
 
-    // returns the function to draw this point
+    // draws this point on the grid
     draw(canvas, ctx) {
-        return gridCircle(canvas, ctx, this.color, this.x, this.y);
+        gridCircle(canvas, ctx, this.color, this.x, this.y);
     }
 }
 
-// a node is a location that can be traveled to
+// A node a point with costs
+// the costs will be used to run the A* algorithm
 // (these will be placed apon a grid in this demo)
 class Node extends Point {
+    // a node has a parent, the parent is the node that preceeds this point when following the algorithm
+    // (this is used to go backwards and find the path using all the ancestors of the end node)
+
+    // A* uses 3 different costs:
+    // g cost: the cost to get to this node from the start (keeps track of distance covered)
+    // h cost: the heuristic, this is the value to determine how "far" a node is from the goal
+    // f cost: the sum of the g and h costs
+
+    // the node with the lowest f cost should be handed first as it goes the least distance to get the closest to the goal
+    // the goal of A* is the reduce the h cost to 0 while keeping the g cost as low as possible
+
     constructor(parent,x,y) {
         super(x,y);
         this.parent = parent;
-        this.g = Math.sqrt(Math.pow(this.x - parent.x, 2) + Math.pow(this.y - parent.y, 2)); // g cost: cost from start
+        // potential bug: the g cost excludes the cost of the parents which is not accurate, this cost should include the cost of the parents
+        this.g = Math.sqrt(Math.pow(this.x - parent.x, 2) + Math.pow(this.y - parent.y, 2));
         this.h = this.hueuristic();
-        this.f = this.g + this.h; // f cost: sum of g and h costs
+        this.f = this.g + this.h;
     }
 
-    // h cost (hueristic function): cost to the goal
+    // hueristic function (h cost): cost to the goal
     hueuristic() {
+        // This hueristic is simply the distance to the goal
         return Math.sqrt(Math.pow(this.x - goal.x, 2) + Math.pow(this.y - goal.y, 2));
     }
 
     // return an array of the neighbors of this node who's parent is also this node
     // (a neighbor in this demo is any nodes adjacent or diagonal to the original node)
     nodeNeighbours() {
+        // note: this algorithm for generating new nodes is not efficient as it constantly is creating more nodes and requiring more space
+        // note: this however has the advantage that the grid size can be "infinite" since it is capable of generating new points
+
         var neighbours = [];
+
+        // all neighbouring nodes are the nodes that vary by exactly 1 in the x and/or y axis
+        // this means it will be 8 surrounding nodes
 
         // a neighbor can have a change of -1 to 1 in the x and y direction (but can't have 0 change in both, see below)
         for (var dy=-1; dy<=1; dy++) {
@@ -54,18 +74,18 @@ class Node extends Point {
 
     // force open makes the node open if it isn't already and if it is open, makes sure it is the lowest f cost node
     forceOpen() {
-        var index = -1;
+        var index = -1; // index will be used to hold the index of this (or an indentical) node in the open list
 
-        // this algorithm will find the node in the open list...
+        // this algorithm will search though all open nodes to see if this (or an identical) node exists in the list
         for (var i=0; i<openList.length; i++) {
-            // there should only be one node in the open list so if it is found then the loop can be stopped
             if (this.identical(openList[i])) {
                 index = i;
+                // there should only be one node in the open list so if it is found then the loop can be stopped
                 break;
             }
         }
 
-        // if this node has a lower cost than the one in the open list, it will be replaced
+        // if this node has a lower cost than the identical one in the open list. the identical one will be replaced
         if (index>-1 && this.f < openList[index].f) {
             openList.splice(index,1); // remove the higher f cost node
             this.insertOpen();
@@ -80,23 +100,23 @@ class Node extends Point {
     // adds this node to the open list (and maintains the open list's order of greatest to least f cost)
     insertOpen() {
         // this algorithm add this node to the open list so that the open list stays sorted from greatest to least
+
+        // search for where in the open list this node belongs
         for (var i=0; i<openList.length; i++) {
             // if the f cost of this is greater than that of the current node, this belongs in the current node's spot 
             if (this.f > openList[i].f) {
-                openList.splice(i,0,this);
+                openList.splice(i,0,this); // insert this node before the current node
                 return;
             }
         }
-        // if the item does not come before anything, it is put on the end
+
+        // if this node does not come before anything, it is put on the end
         openList.push(this);
     }
 
-
-    // checks if this node has a smaller f cost than
-
     // checks if the node can be traversed to or if it may not be
     traversable() {
-        // if the node is any obstacle, it may not be traversed to
+        // if the node is an obstacle, it may not be traversed to
         for (var i=0; i<obstacles.length; i++) {
             if (this.identical(obstacles[i])) return false;
         }
@@ -131,10 +151,11 @@ class Node extends Point {
 // the start node lacks a parent and has a g cost of 0 (because it is the start node)
 class Start extends Node {
     constructor(x,y) {
+        // the start node needs to pass in a parent to get pass the super constructor...
         super(new Point(x,y), x, y);
-        this.parent = null;
+        this.parent = null; // this temporary parent is then replaced with null
         this.g = 0; // g cost: has no cost as it is the start
-        this.f = this.g + this.h; // f cost: sum of g and h costs
+        this.f = this.g + this.h;
         this.color = CircleType.START;
     }
 }
@@ -147,10 +168,11 @@ class End extends Point {
     }
 }
 
-
+// note: the goal needs to be created first because all the other nodes need to know the distance to the end point
 var goal = new End(10,15);
 var start = new Start(5,5);
 
+// array of all points that contain an obstacle
 var obstacles = [
     new Point(5,10),
     new Point(6,10),
@@ -163,48 +185,56 @@ var obstacles = [
 ];
 
 
-var openList = [];
-var closedList = [];
-var path = [];
-// traversable list here
-openList.push(start);
-// closed.push(null);closed.pop(null); // force the array to type to an array and not transform into false (because I-don't-know why)
+var openList = []; // array of open nodes
+var closedList = []; // array of closed nodes
+var path = []; // array of nodes that make the final path
 
+// runs the A* pathfinding algorithm to generate a path from the start node to the end point
 function AStar() {
+    // reset the AStar scenario so it is just the start point
+    openList = [];
+    closedList = [];
+    openList.push(start);
 
+    // loops for as long as the algorithm is running
     while (true) {
-        if (openList.length === 0) return false;
+        if (openList.length === 0) return false; // returns false to show the command failed
+        // the command fails when there are no more open nodes to check
 
-        // the open array is sorted from larges f cost to lowest
+        // the open array is sorted from largest f cost to lowest
         // so getting the lowest f cost is as simple as popping it off the array
         var current = openList.pop();
 
-        closedList.push(current);
+        closedList.push(current); // closes the current point because it is going to be checked
 
-        if (current.identical(goal)) { // The path has been found
+        if (current.identical(goal)) { // if the goal has been found, the path has finished
             console.log(current);
             console.log("A* done");
             break;
         };
 
 
+        // create a list of neighbors to be iterated over
         var neighbours = current.nodeNeighbours();
 
-        // with each neighbor of the node in question...
         for (var i=0; i < neighbours.length; i++) {
             neighbour = neighbours[i];
 
             // if the node can not be traveled to or is already closed then it does not need to be checked
-            if (!neighbour.traversable() || neighbour.closed()) continue;
+            if (!neighbour.traversable() || neighbour.closed()) continue; // so that that neighbor does not need to be checked...
 
+            // otherwise the node needs to be opened and checked (potentially if it has a lower cost)
             neighbour.forceOpen();
         }
     }
 
-    // break the path up into each of the nodes so they can individually be collored
+    // to get to this point the A* must have succeeded
+
+    // the following section breaks the path up into individual nodes in an array
+    // this is done by taking the last current node (which is the goal at this point) and use it to go backwards through all of the parent
     path = [];
 
-    // grab the first node...
+    // grab the end node... (which is the current node)
     var currentPath = current;
     // and for every parent of it...
     while (currentPath != null) {
@@ -213,11 +243,22 @@ function AStar() {
         // then get the next parent
         currentPath = currentPath.parent;
     }
+
+    return true; // returns true to show the command worked
 }
 
+// sets the drawAstar function from the canvas.js to be the function declared below
 drawAstar = drawLocalAstar;
 
+// note:
+// this is because once javascript loads a global variable in one file, another file can use the same global variable later
+// a file loaded later in the html has access to all variables from the files before it
+// however it does not have access to variables from the files loaded after it
+// this is why Astar needs to set the draw function from canvas.js
+
+// draws the A star items to the screen
 function drawLocalAstar(canvas, ctx) {
+    // draws the goal point, start node, nodes in the open, closed, obstacles, and path lists
 
     goal.draw(canvas, ctx);
     start.draw(canvas, ctx);
