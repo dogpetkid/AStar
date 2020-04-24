@@ -37,8 +37,7 @@ class Node extends Point {
     constructor(parent,x,y) {
         super(x,y);
         this.parent = parent;
-        // potential bug: the g cost excludes the cost of the parents which is not accurate, this cost should include the cost of the parents
-        this.g = Math.sqrt(Math.pow(this.x - parent.x, 2) + Math.pow(this.y - parent.y, 2));
+        this.g = parent.g + Math.sqrt(Math.pow(this.x - parent.x, 2) + Math.pow(this.y - parent.y, 2));
         this.h = this.hueuristic();
         this.f = this.g + this.h;
     }
@@ -169,12 +168,11 @@ class End extends Point {
 }
 
 // note: the goal needs to be created first because all the other nodes need to know the distance to the end point
-var goal = new End(10,15);
+var goal = new End(30,30);
 var start = new Start(5,5);
 
 // array of all points that contain an obstacle
 var obstacles = [
-    new Point(5,10),
     new Point(6,10),
     new Point(7,10),
     new Point(8,10),
