@@ -168,18 +168,16 @@ class End extends Point {
 }
 
 // note: the goal needs to be created first because all the other nodes need to know the distance to the end point
-var goal = new End(30,30);
+var goal = new End(5,30);
 var start = new Start(5,5);
 
 // array of all points that contain an obstacle
 var obstacles = [
-    new Point(6,10),
-    new Point(7,10),
-    new Point(8,10),
-    new Point(9,10),
-    new Point(9,9),
-    new Point(9,8),
-    new Point(9,7)
+    new Point(3,20),
+    new Point(4,20),
+    new Point(5,20),
+    new Point(6,20),
+    new Point(7,20),
 ];
 
 
@@ -196,6 +194,8 @@ function AStar() {
 
     // loops for as long as the algorithm is running
     while (true) {
+        console.log("running"); // debug
+
         if (openList.length === 0) return false; // returns false to show the command failed
         // the command fails when there are no more open nodes to check
 
